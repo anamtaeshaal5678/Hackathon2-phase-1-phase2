@@ -14,19 +14,33 @@ export default function SignIn() {
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        const { data, error } = await authClient.signIn.email({
-            email,
-            password,
-        }, {
-            onSuccess: () => {
-                router.push("/");
-            },
-            onError: (ctx) => {
-                console.error("Sign in error:", ctx.error);
-                console.error("Error details:", JSON.stringify(ctx.error, null, 2));
-                setError(ctx.error.message || "An unknown error occurred. Check console.");
-            }
-        });
+
+        // Check if we are on Vercel but missing database setup
+        const isVercel = typeof window !== "undefined" && window.location.hostname.includes("vercel.app");
+
+        try {
+            const { data, error } = await authClient.signIn.email({
+                email,
+                password,
+            }, {
+                onSuccess: () => {
+                    router.push("/");
+                },
+                onError: (ctx) => {
+                    console.error("Sign in error:", ctx.error);
+                    let message = ctx.error.message || "An unknown error occurred.";
+
+                    if (isVercel && message.includes("Database")) {
+                        message = "Production Database not configured. Please set DATABASE_URL in Vercel settings.";
+                    }
+
+                    setError(message);
+                }
+            });
+        } catch (err) {
+            console.error("Catch error during sign-in:", err);
+            setError(isVercel ? "Vercel Persistence Error: Please setup Neon PostgreSQL database." : "Sign-in failed. check console.");
+        }
     };
 
     return (
