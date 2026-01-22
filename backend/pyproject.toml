@@ -1,0 +1,21 @@
+[project]
+name = "todo-backend"
+version = "0.1.0"
+description = "FastAPI Backend for Evolution of Todo Phase II"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlmodel",
+    "psycopg2-binary",
+    "python-multipart",
+    "passlib[bcrypt]",
+    "python-jose[cryptography]",
+    "python-dotenv>=1.2.1",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest"
+]
