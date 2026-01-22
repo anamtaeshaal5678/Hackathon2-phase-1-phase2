@@ -40,4 +40,6 @@ def get_session() -> Generator[Session, None, None]:
 def create_db_and_tables():
     if not engine:
         raise RuntimeError("DATABASE_URL is not set")
+    # Import all models to ensure they're registered
+    from models import User, Session as DbSession, Todo, Conversation, Message
     SQLModel.metadata.create_all(engine)

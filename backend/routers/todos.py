@@ -4,10 +4,38 @@ from typing import List
 import uuid
 
 from database import get_session
-from models import Todo, TodoCreate, TodoUpdate, TodoRead, User
+from models import Todo, TodoCreate, TodoUpdate, TodoRead, User, TodoStats
 from auth import get_current_user
 
 router = APIRouter(prefix="/todos", tags=["todos"])
+
+@router.get("/stats", response_model=TodoStats)
+def get_todo_stats(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    statement = select(Todo).where(Todo.user_id == current_user.id)
+    todos = session.exec(statement).all()
+    
+    total = len(todos)
+    completed = len([t for t in todos if t.is_completed])
+    pending = total - completed
+    rate = (completed / total * 100) if total > 0 else 0
+    
+    priority_map = {"high": 0, "medium": 0, "low": 0}
+    for t in todos:
+        p = t.priority.lower() if t.priority else "medium"
+        if p in priority_map:
+            priority_map[p] += 1
+            
+    return TodoStats(
+        total_tasks=total,
+        completed_tasks=completed,
+        pending_tasks=pending,
+        completion_rate=round(rate, 2),
+        priority_breakdown=priority_map
+    )
+
 
 @router.post("", response_model=TodoRead)
 def create_todo(

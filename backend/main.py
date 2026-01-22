@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
-from routers import todos
+from routers import todos, chat
 import os
 
 import logging
@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
-app = FastAPI(title="Evolution of Todo - Phase II", version="0.1.0", lifespan=lifespan, redirect_slashes=False)
+app = FastAPI(title="AI-Powered Todo Chatbot - Phase III", version="0.2.0", lifespan=lifespan, redirect_slashes=False)
 
 @app.middleware("http")
 async def catch_exceptions_middleware(request: Request, call_next):
@@ -40,6 +40,7 @@ app.add_middleware(
 )
 
 app.include_router(todos.router)
+app.include_router(chat.router)
 
 @app.get("/")
 def read_root():
