@@ -14,10 +14,11 @@ console.log("DEBUG: Process CWD:", process.cwd());
 
 const getDatabase = () => {
     const dbUrl = process.env.DATABASE_URL;
+    console.log("DEBUG: Initializing Better Auth Database...");
+    console.log("DEBUG: DATABASE_URL exists:", !!dbUrl);
 
     if (dbUrl && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://"))) {
-        // If PostgreSQL is provided, we can use it (Vercel/Production)
-        // For simple hackathon setup, we can pass the connection string
+        console.log("DEBUG: Using Remote PostgreSQL Database (Production Mode)");
         return {
             dialect: "postgres",
             connectionString: dbUrl
@@ -26,7 +27,8 @@ const getDatabase = () => {
 
     // Default to SQLite for local development
     const dbPath = path.resolve(process.cwd(), "..", "todo.db");
-    console.log("Using Local SQLite DB at:", dbPath);
+    console.log("DEBUG: Falling back to Local SQLite (Development Mode or Missing DATABASE_URL)");
+    console.log("DEBUG: Attempting to use path:", dbPath);
     return new Database(dbPath);
 };
 
