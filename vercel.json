@@ -2,12 +2,12 @@
     "rewrites": [
         {
             "source": "/api/backend/:path*",
-            "destination": "/api/py/:path*"
+            "destination": "/api/index.py"
         }
     ],
     "builds": [
         {
-            "src": "backend/main.py",
+            "src": "api/index.py",
             "use": "@vercel/python",
             "config": {
                 "maxLambdaSize": "15mb",
@@ -15,14 +15,8 @@
             }
         },
         {
-            "src": "frontend/package.json",
+            "src": "package.json",
             "use": "@vercel/next"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/api/py/(.*)",
-            "dest": "backend/main.py"
         }
     ]
 }
