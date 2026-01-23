@@ -24,17 +24,22 @@ const getDatabase = () => {
     console.log("DEBUG: Falling back to Local SQLite (Development Mode or Missing DATABASE_URL)");
     console.log("DEBUG: Attempting to use path:", localDbPath);
 
-    // Check if file exists to provide better error
-    try {
-        const fs = require('fs');
-        if (!fs.existsSync(localDbPath)) {
-            console.warn(`WARNING: SQLite database not found at ${localDbPath}. This is expected on Vercel if not using Postgres.`);
-        }
-    } catch (e) {
-        // ignore fs errors
+    // (Optional) Check cache/existence if needed, but better-sqlite3 handles creation.
+
+    // SQLite Handling
+    // On Vercel, the file system is Read-Only except for /tmp
+    let dbToUse = localDbPath;
+
+    if (process.env.VERCEL_URL) {
+        console.log("DEBUG: Detected Vercel Environment. Using /tmp for SQLite to avoid Read-Only error.");
+        const tmpDbPath = "/tmp/todo.db";
+        // We start with an empty DB in /tmp because we can't easily copy the gitignored one
+        // This means data is ephemeral (resets on deploy/cold start)
+        dbToUse = tmpDbPath;
     }
 
-    return new Database(localDbPath);
+    console.log("DEBUG: Using SQLite Database at:", dbToUse);
+    return new Database(dbToUse);
 };
 
 export const auth = betterAuth({
