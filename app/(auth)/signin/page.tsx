@@ -30,8 +30,15 @@ export default function SignIn() {
                     console.error("Sign in error:", ctx.error);
                     let message = ctx.error.message || "An unknown error occurred.";
 
-                    if (isVercel && message.includes("Database")) {
-                        message = "Production Database not configured. Please set DATABASE_URL in Vercel settings.";
+                    // Better error parsing for common Vercel issues
+                    if (isVercel) {
+                        if (message.includes("Database") || message.includes("relation") || message.includes("table")) {
+                            message = "Database Error: Please ensure you have set DATABASE_URL in Vercel and run migrations.";
+                        } else if (message.includes("secret") || message.includes("BETTER_AUTH_SECRET")) {
+                            message = "Missing BETTER_AUTH_SECRET in Vercel environment variables.";
+                        } else if (message.includes("fetch") || message.includes("Failed to fetch")) {
+                            message = "API Connection Error: Ensure BETTER_AUTH_URL is set correctly in Vercel.";
+                        }
                     }
 
                     setError(message);
@@ -39,7 +46,11 @@ export default function SignIn() {
             });
         } catch (err) {
             console.error("Catch error during sign-in:", err);
-            setError(isVercel ? "Vercel Persistence Error: Please setup Neon PostgreSQL database." : "Sign-in failed. check console.");
+            let message = "Sign-in failed. Check browser console for details.";
+            if (isVercel) {
+                message = "Vercel Configuration Error: Check DATABASE_URL and BETTER_AUTH_SECRET in Vercel Settings.";
+            }
+            setError(message);
         }
     };
 

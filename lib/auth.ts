@@ -32,16 +32,23 @@ const getDatabase = () => {
     console.log("DEBUG: Attempting to use path:", dbPath);
 
     try {
+        if (isVercel && !dbUrl) {
+            console.error("CRITICAL: Running on Vercel but DATABASE_URL is missing!");
+            throw new Error("DATABASE_URL is required on Vercel.");
+        }
         return new Database(dbPath);
-    } catch (e) {
-        console.error("CRITICAL: Failed to initialize SQLite. This is expected on Vercel if DATABASE_URL is not set.", e);
-        // Returning a placeholder to allow build to continue
+    } catch (e: any) {
+        console.error("CRITICAL: Failed to initialize database:", e.message);
+        // Returning a placeholder to allow build to continue, but with clear indicator
         return {
             dialect: "sqlite",
-            dbPath: dbPath
+            dbPath: dbPath,
+            _error: e.message
         } as any;
     }
 };
+
+const isVercel = process.env.VERCEL === "1";
 
 export const auth = betterAuth({
     database: getDatabase(),

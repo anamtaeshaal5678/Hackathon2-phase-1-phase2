@@ -1,0 +1,28 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/backend/:path*",
+            "destination": "/api/py/:path*"
+        }
+    ],
+    "builds": [
+        {
+            "src": "backend/main.py",
+            "use": "@vercel/python",
+            "config": {
+                "maxLambdaSize": "15mb",
+                "runtime": "python3.9"
+            }
+        },
+        {
+            "src": "frontend/package.json",
+            "use": "@vercel/next"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/py/(.*)",
+            "dest": "backend/main.py"
+        }
+    ]
+}

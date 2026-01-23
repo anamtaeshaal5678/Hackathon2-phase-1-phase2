@@ -25,6 +25,10 @@ async def catch_exceptions_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as e:
+        # Don't catch HTTPExceptions (like 401 Unauthorized), let FastAPI handle them
+        if type(e).__name__ == "HTTPException" or type(e).__name__ == "StarletteHTTPException":
+            raise e
+            
         logger.error(f"Global exception: {e}")
         logger.error(traceback.format_exc())
         return Response("Internal Server Error", status_code=500)
