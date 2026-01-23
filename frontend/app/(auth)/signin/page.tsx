@@ -23,8 +23,16 @@ export default function SignIn() {
             },
             onError: (ctx) => {
                 console.error("Sign in error:", ctx.error);
-                console.error("Error details:", JSON.stringify(ctx.error, null, 2));
-                setError(ctx.error.message || "An unknown error occurred. Check console.");
+                let message = ctx.error.message || "An unknown error occurred.";
+                // Try to extract more info if available
+                if (!ctx.error.message) {
+                    try {
+                        message += " Details: " + JSON.stringify(ctx.error);
+                    } catch (e) {
+                        // ignore circular reference errors
+                    }
+                }
+                setError(message);
             }
         });
     };
