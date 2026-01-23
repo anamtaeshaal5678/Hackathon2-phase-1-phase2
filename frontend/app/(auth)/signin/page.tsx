@@ -22,8 +22,10 @@ export default function SignIn() {
                 router.push("/");
             },
             onError: (ctx) => {
-                const message = ctx.error.message || "Invalid email or password";
-                setError(message);
+                console.error("Sign in error:", ctx);
+                // VERCEL DEBUGGING: Dump the entire error context
+                const debugInfo = JSON.stringify(ctx, null, 2);
+                setError(debugInfo);
             }
         });
     };
@@ -75,7 +77,14 @@ export default function SignIn() {
                             </div>
                         </div>
 
-                        {error && <div className="text-red-600 text-sm text-center">{error}</div>}
+                        {error && (
+                            <div className="rounded-md bg-red-50 p-4">
+                                <h3 className="text-sm font-medium text-red-800">Debug Error Details:</h3>
+                                <pre className="mt-2 whitespace-pre-wrap font-mono text-xs text-red-700">
+                                    {error}
+                                </pre>
+                            </div>
+                        )}
 
                         <div>
                             <button

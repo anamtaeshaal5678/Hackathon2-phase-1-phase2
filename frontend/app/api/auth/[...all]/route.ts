@@ -2,18 +2,19 @@ import { auth } from "@/lib/auth";
 import { toNextJsHandler } from "better-auth/next-js";
 
 export const GET = async (req: Request) => {
-    console.log("Auth GET request:", req.url);
-    return toNextJsHandler(auth).GET(req);
+    try {
+        return await toNextJsHandler(auth).GET(req);
+    } catch (e: any) {
+        console.error("Auth GET Crash:", e);
+        return new Response(JSON.stringify({ error: "Auth GET Crash", details: e.message, stack: e.stack }), { status: 500 });
+    }
 };
 
 export const POST = async (req: Request) => {
-    console.log("Auth POST request:", req.url);
     try {
-        const clone = req.clone();
-        const body = await clone.text();
-        console.log("DEBUG: Auth POST Body:", body);
-    } catch (e) {
-        console.error("DEBUG: Failed to read body", e);
+        return await toNextJsHandler(auth).POST(req);
+    } catch (e: any) {
+        console.error("Auth POST Crash:", e);
+        return new Response(JSON.stringify({ error: "Auth POST Crash", details: e.message, stack: e.stack }), { status: 500 });
     }
-    return toNextJsHandler(auth).POST(req);
 };
