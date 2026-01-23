@@ -22,16 +22,7 @@ export default function SignIn() {
                 router.push("/");
             },
             onError: (ctx) => {
-                console.error("Sign in error:", ctx.error);
-                let message = ctx.error.message || "An unknown error occurred.";
-                // Try to extract more info if available
-                if (!ctx.error.message) {
-                    try {
-                        message += " Details: " + JSON.stringify(ctx.error);
-                    } catch (e) {
-                        // ignore circular reference errors
-                    }
-                }
+                const message = ctx.error.message || "Invalid email or password";
                 setError(message);
             }
         });
@@ -84,7 +75,7 @@ export default function SignIn() {
                             </div>
                         </div>
 
-                        {error && <div className="text-red-600 text-sm">{error}</div>}
+                        {error && <div className="text-red-600 text-sm text-center">{error}</div>}
 
                         <div>
                             <button
