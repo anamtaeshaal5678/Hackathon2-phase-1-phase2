@@ -47,10 +47,12 @@ export default function Dashboard() {
       const todo = await apiFetch("/todos", {
         method: "POST",
         body: JSON.stringify({
-          description: newTodo,
+          title: newTodo,
+          description: "",
           is_completed: false,
           priority: newPriority
         }),
+
       });
       setTodos([todo, ...todos]);
       setNewTodo("");
@@ -196,8 +198,9 @@ export default function Dashboard() {
                     </div>
                     <div className="flex flex-col">
                       <span className={`text-sm font-semibold transition-all ${todo.is_completed ? 'line-through text-gray-400' : 'text-gray-900 font-bold'}`}>
-                        {todo.description}
+                        {todo.title || todo.description}
                       </span>
+
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-tighter ${getPriorityColor(todo.priority)}`}>
                           {todo.priority || "medium"}

@@ -28,10 +28,12 @@ class Session(SQLModel, table=True):
 
 # Todo Schemas
 class TodoBase(SQLModel):
-    description: str = Field(max_length=200)
+    title: str = Field(max_length=200)
+    description: Optional[str] = Field(default=None, max_length=500)
     is_completed: bool = Field(default=False)
     priority: str = Field(default="medium")  # "low" | "medium" | "high"
     due_date: Optional[datetime] = None
+
 
 
 # Todo Table (Managed by Python Backend)
@@ -45,10 +47,12 @@ class TodoCreate(TodoBase):
     pass
 
 class TodoUpdate(SQLModel):
+    title: Optional[str] = None
     description: Optional[str] = None
     is_completed: Optional[bool] = None
     priority: Optional[str] = None
     due_date: Optional[datetime] = None
+
 
 
 class TodoRead(TodoBase):

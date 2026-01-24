@@ -23,7 +23,8 @@ from models import (
 from auth import get_current_user
 from mcp_server import mcp_tools
 
-router = APIRouter(prefix="/api/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["chat"])
+
 
 
 class MockAI:

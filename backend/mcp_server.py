@@ -63,7 +63,8 @@ class MCPTaskTools:
                 # Create task
                 task = Todo(
                     user_id=user_id,
-                    description=title,  # Using description field as title
+                    title=title,
+                    description=description,
                     is_completed=False,
                     priority=priority.lower() if priority else "medium",
                     due_date=parsed_due_date
@@ -75,9 +76,10 @@ class MCPTaskTools:
                 return {
                     "task_id": str(task.id),
                     "status": "success",
-                    "title": title,
-                    "message": f"✅ Task added: {title}"
+                    "title": task.title,
+                    "message": f"✅ Task added: {task.title}"
                 }
+
         except Exception as e:
             return {
                 "status": "error",
@@ -111,7 +113,8 @@ class MCPTaskTools:
                 task_list = [
                     {
                         "task_id": str(task.id),
-                        "title": task.description,
+                        "title": task.title,
+                        "description": task.description,
                         "completed": task.is_completed,
                         "priority": task.priority,
                         "due_date": task.due_date.isoformat() if task.due_date else None,
@@ -119,6 +122,7 @@ class MCPTaskTools:
                     }
                     for task in tasks
                 ]
+
                 
                 return {
                     "status": "success",
@@ -174,9 +178,10 @@ class MCPTaskTools:
                 return {
                     "task_id": task_id,
                     "status": "completed",
-                    "title": task.description,
-                    "message": f"✅ Marked '{task.description}' as completed"
+                    "title": task.title,
+                    "message": f"✅ Marked '{task.title}' as completed"
                 }
+
         except Exception as e:
             return {
                 "status": "error",
@@ -218,7 +223,7 @@ class MCPTaskTools:
                         "message": f"Task not found: {task_id}"
                     }
                 
-                title = task.description
+                title = task.title
                 session.delete(task)
                 session.commit()
                 
@@ -228,6 +233,7 @@ class MCPTaskTools:
                     "title": title,
                     "message": f"🗑️ Deleted task: {title}"
                 }
+
         except Exception as e:
             return {
                 "status": "error",
@@ -282,7 +288,9 @@ class MCPTaskTools:
                 
                 # Update fields
                 if title:
-                    task.description = title
+                    task.title = title
+                if description:
+                    task.description = description
                 if priority:
                     task.priority = priority.lower()
                 if due_date:
@@ -298,9 +306,10 @@ class MCPTaskTools:
                 return {
                     "task_id": task_id,
                     "status": "updated",
-                    "title": task.description,
-                    "message": f"📝 Updated task: {task.description}"
+                    "title": task.title,
+                    "message": f"📝 Updated task: {task.title}"
                 }
+
         except Exception as e:
             return {
                 "status": "error",

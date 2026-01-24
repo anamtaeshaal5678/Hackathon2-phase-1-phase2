@@ -14,13 +14,16 @@ def get_todo_stats(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    print(f"DEBUG: get_todo_stats for user {current_user.id}")
     statement = select(Todo).where(Todo.user_id == current_user.id)
     todos = session.exec(statement).all()
+    print(f"DEBUG: found {len(todos)} todos for stats")
     
     total = len(todos)
     completed = len([t for t in todos if t.is_completed])
     pending = total - completed
     rate = (completed / total * 100) if total > 0 else 0
+
     
     priority_map = {"high": 0, "medium": 0, "low": 0}
     for t in todos:
@@ -44,6 +47,7 @@ def create_todo(
     current_user: User = Depends(get_current_user),
 ):
     todo = Todo.model_validate(todo_in, update={"user_id": current_user.id})
+
     session.add(todo)
     session.commit()
     session.refresh(todo)
@@ -56,9 +60,19 @@ def read_todos(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    statement = select(Todo).where(Todo.user_id == current_user.id).offset(offset).limit(limit)
-    todos = session.exec(statement).all()
-    return todos
+    print(f"DEBUG: read_todos for user {current_user.id}")
+    try:
+        statement = select(Todo).where(Todo.user_id == current_user.id).offset(offset).limit(limit)
+        todos = session.exec(statement).all()
+        print(f"DEBUG: found {len(todos)} todos")
+        return todos
+    except Exception as e:
+        print(f"DEBUG: error in read_todos: {e}")
+        import traceback
+        traceback.print_exc()
+        raise e
+
+
 
 @router.get("/{todo_id}", response_model=TodoRead)
 def read_todo(

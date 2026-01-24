@@ -1,0 +1,44 @@
+name: Cloud-Native Todo Chatbot CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install sqlmodel pytest
+
+    - name: Run Backend Tests
+      run: |
+        cd backend
+        # Note: uv would be used in real env, using pip for simplified CI demo
+        pytest tests/test_chat.py
+
+    - name: Validate Dockerfiles
+      run: |
+        docker build -t todo-backend-test ./backend --dry-run
+        docker build -t todo-frontend-test ./frontend --dry-run
+
+    - name: Helm Chart Linting
+      run: |
+        helm lint k8s/helm/todo-backend
+        helm lint k8s/helm/todo-frontend
+
+    - name: SDD Governance Compliance Audit
+      run: |
+        python scripts/verify_compliance.py
