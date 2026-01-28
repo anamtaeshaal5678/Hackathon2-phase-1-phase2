@@ -22,6 +22,7 @@ from models import (
 )
 from auth import get_current_user
 from mcp_server import mcp_tools
+from system_utils import get_system_status_data
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -148,6 +149,14 @@ class MockAI:
             else:
                 return ("delete_task", {"task_ref": "first"})
         
+        # System status intent
+        system_keywords_en = ["cluster", "nodes", "pods", "status", "system", "health", "infrastructure"]
+        system_keywords_ur = ["کلسٹر", "نوڈز", "پوڈز", "سسٹم", "صحت", "انفراسٹرکچر"]
+        
+        keywords = system_keywords_ur if language == "urdu" else system_keywords_en
+        if any(kw in text_lower for kw in keywords):
+            return ("check_system_status", {})
+
         # Default: unknown intent
         return ("unknown", {})
     
@@ -196,6 +205,18 @@ class MockAI:
             else:
                 return f"❌ {result.get('message', 'Failed to delete task')}"
         
+        elif intent == "check_system_status":
+            if result.get("status") == "Ready":
+                pods = result.get("pods", [])
+                response = f"🛡️ **System Status: {result.get('status')}**\n"
+                response += f"📍 Cluster: {result.get('cluster_name')} ({result.get('version')})\n\n"
+                response += f"📦 Active Pods ({len(pods)}):\n"
+                for pod in pods:
+                    response += f"- `{pod['name']}`: {pod['status']} ({pod['ready']})\n"
+                return response
+            else:
+                return "⚠️ System status currently unavailable."
+
         elif intent == "unknown":
             return "🤔 I'm not sure what you want to do. Try:\n• 'Add task: buy milk'\n• 'Show my tasks'\n• 'Complete first task'\n• 'Delete last task'"
         
@@ -238,6 +259,20 @@ class MockAI:
             else:
                 return f"❌ کام حذف نہیں ہو سکا"
         
+        elif intent == "check_system_status":
+            if result.get("status") == "Ready":
+                pods = result.get("pods", [])
+                response = f"🛡️ **سسٹم کی صورتحال: {result.get('status')}**\n"
+                response += f"📍 کلسٹر: {result.get('cluster_name')} ({result.get('version')})\n\n"
+                response += f"📦 فعال پوڈز ({len(pods)}):\n"
+                for pod in pods:
+                    # Map status to Urdu for response
+                    p_status = "چل رہا ہے" if pod['status'] == "Running" else pod['status']
+                    response += f"- `{pod['name']}`: {p_status} ({pod['ready']})\n"
+                return response
+            else:
+                return "⚠️ سسٹم کی صورتحال اس وقت دستیاب نہیں ہے۔"
+
         elif intent == "unknown":
             return "🤔 میں سمجھ نہیں سکا۔ کوشش کریں:\n• 'نیا کام: دودھ خریدنا'\n• 'میری فہرست دکھاؤ'\n• 'پہلا کام مکمل کرو'\n• 'آخری کام حذف کرو'"
         
@@ -335,7 +370,6 @@ async def chat(
             result = {"status": "error", "message": "No pending tasks found"}
     
     elif intent == "delete_task":
-        # Get task to delete
         tasks_result = mcp_tools.list_tasks(user_id, "all")
         if tasks_result.get("status") == "success" and tasks_result.get("tasks"):
             tasks = tasks_result["tasks"]
@@ -352,6 +386,10 @@ async def chat(
             tool_calls = ["list_tasks", "delete_task"]
         else:
             result = {"status": "error", "message": "No tasks found"}
+
+    elif intent == "check_system_status":
+        result = get_system_status_data()
+        tool_calls = ["get_system_status"]
     
     else:
         result = {"status": "unknown"}

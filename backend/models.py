@@ -29,12 +29,14 @@ class Session(SQLModel, table=True):
 # Todo Schemas
 class TodoBase(SQLModel):
     title: str = Field(max_length=200)
-    description: Optional[str] = Field(default=None, max_length=500)
+    description: Optional[str] = Field(default="", max_length=500)
     is_completed: bool = Field(default=False)
     priority: str = Field(default="medium")  # "low" | "medium" | "high"
     due_date: Optional[datetime] = None
-
-
+    # NEW Phase V fields
+    recurrence: Optional[str] = Field(default="none")  # "daily" | "weekly" | "monthly" | "none"
+    tags: Optional[str] = Field(default="")  # Comma-separated tags
+    reminder_time: Optional[datetime] = None
 
 # Todo Table (Managed by Python Backend)
 class Todo(TodoBase, table=True):
@@ -52,8 +54,9 @@ class TodoUpdate(SQLModel):
     is_completed: Optional[bool] = None
     priority: Optional[str] = None
     due_date: Optional[datetime] = None
-
-
+    recurrence: Optional[str] = None
+    tags: Optional[str] = None
+    reminder_time: Optional[datetime] = None
 
 class TodoRead(TodoBase):
     id: uuid.UUID
@@ -112,4 +115,16 @@ class TodoStats(SQLModel):
     pending_tasks: int
     completion_rate: float
     priority_breakdown: dict  # {"high": 1, "medium": 2, "low": 0}
+class PodStatus(SQLModel):
+    name: str
+    ready: str
+    status: str
+    restarts: int
+    age: str
 
+class SystemStatus(SQLModel):
+    cluster_name: str
+    version: str
+    status: str
+    pods: List[PodStatus]
+    services: List[str]

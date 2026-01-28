@@ -71,8 +71,23 @@ class MCPTaskTools:
                 )
                 session.add(task)
                 session.commit()
-                session.refresh(task)
-                
+                # SP-2: Emit event via Dapr
+                try:
+                    import asyncio
+                    from dapr_client import dapr
+                    # We use a separate thread/task for fire-and-forget in sync method
+                    # or handle it synchronously since it's a tool.
+                    # Best: Use a lightweight bridge.
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(dapr.publish_event("pubsub", "task-events", {
+                        "type": "task_created_mcp",
+                        "user_id": user_id,
+                        "task_id": str(task.id),
+                        "title": task.title
+                    }))
+                except: pass
+
                 return {
                     "task_id": str(task.id),
                     "status": "success",
@@ -175,6 +190,18 @@ class MCPTaskTools:
                 session.add(task)
                 session.commit()
                 
+                # SP-2: Emit event via Dapr
+                try:
+                    import asyncio
+                    from dapr_client import dapr
+                    loop = asyncio.new_event_loop()
+                    loop.run_until_complete(dapr.publish_event("pubsub", "task-events", {
+                        "type": "task_completed_mcp",
+                        "user_id": user_id,
+                        "task_id": task_id
+                    }))
+                except: pass
+
                 return {
                     "task_id": task_id,
                     "status": "completed",
@@ -227,6 +254,18 @@ class MCPTaskTools:
                 session.delete(task)
                 session.commit()
                 
+                # SP-2: Emit event via Dapr
+                try:
+                    import asyncio
+                    from dapr_client import dapr
+                    loop = asyncio.new_event_loop()
+                    loop.run_until_complete(dapr.publish_event("pubsub", "task-events", {
+                        "type": "task_deleted_mcp",
+                        "user_id": user_id,
+                        "task_id": task_id
+                    }))
+                except: pass
+
                 return {
                     "task_id": task_id,
                     "status": "deleted",
@@ -303,6 +342,19 @@ class MCPTaskTools:
                 session.commit()
                 session.refresh(task)
                 
+                # SP-2: Emit event via Dapr
+                try:
+                    import asyncio
+                    from dapr_client import dapr
+                    loop = asyncio.new_event_loop()
+                    loop.run_until_complete(dapr.publish_event("pubsub", "task-events", {
+                        "type": "task_updated_mcp",
+                        "user_id": user_id,
+                        "task_id": task_id,
+                        "title": task.title
+                    }))
+                except: pass
+
                 return {
                     "task_id": task_id,
                     "status": "updated",

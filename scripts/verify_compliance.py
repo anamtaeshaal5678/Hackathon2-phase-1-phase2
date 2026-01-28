@@ -4,10 +4,11 @@ import sys
 # Restricted directories that should ONLY contain AI-generated artifacts
 RESTRICTED_DIRS = {
     "backend/Dockerfile": "AI-Generated via Gordon",
-    "frontend/Dockerfile": "AI-Generated viaGordon",
+    "frontend/Dockerfile": "AI-Generated via Gordon",
     "k8s/helm/todo-backend": "AI-Generated via kubectl-ai",
     "k8s/helm/todo-frontend": "AI-Generated via kubectl-ai",
-    "specs/infrastructure_spec.md": "Single Source of Truth"
+    "specs/infrastructure_spec.md": "Single Source of Truth",
+    "docs/PHASE_V_SDD_AUDIT.md": "Phase V Governance Evidence"
 }
 
 def verify_compliance():
@@ -25,6 +26,13 @@ def verify_compliance():
     # In a real scenario, this would check git logs for human vs agent authors
     print("✅ SP-0 Check: All infrastructure changes match spec revision history.")
     
+    # Check for Audit Report
+    if os.path.exists("docs/PHASE_V_SDD_AUDIT.md"):
+         print("✅ Phase V Audit Report found.")
+    else:
+        print("❌ Phase V Audit Report MISSING!")
+        all_passed = False
+
     if not all_passed:
         print("\n🚨 AUDIT FAILED: Infrastructure out of sync with SDD Constitution.")
         sys.exit(1)

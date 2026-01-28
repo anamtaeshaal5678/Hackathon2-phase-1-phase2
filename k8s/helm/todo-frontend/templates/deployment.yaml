@@ -11,6 +11,9 @@ spec:
       {{- include "todo-frontend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "todo-frontend"
       labels:
         {{- include "todo-frontend.selectorLabels" . | nindent 8 }}
     spec:

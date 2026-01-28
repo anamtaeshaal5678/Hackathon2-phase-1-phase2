@@ -8,7 +8,7 @@ import requests
 import json
 
 BASE_URL = "http://localhost:8000"
-USER_ID = "test-user-123"
+USER_ID = "kwZ2P1FWYqFs4jgZ1r15b4B2zwKGeDyV"
 
 def print_response(response):
     """Pretty print response"""
@@ -30,7 +30,7 @@ def test_chat():
     # Test 1: Add task (English)
     print("\n1. Test: Add task in English")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": None,
             "message": "Add task to buy groceries"
@@ -42,7 +42,7 @@ def test_chat():
     # Test 2: List tasks (English)
     print("\n2. Test: List tasks in English")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": conversation_id,
             "message": "Show my tasks"
@@ -53,7 +53,7 @@ def test_chat():
     # Test 3: Add task (Urdu)
     print("\n3. Test: Add task in Urdu")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": conversation_id,
             "message": "نیا کام: دودھ خریدنا"
@@ -64,7 +64,7 @@ def test_chat():
     # Test 4: List tasks (Urdu)
     print("\n4. Test: List tasks in Urdu")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": conversation_id,
             "message": "میری فہرست دکھاؤ"
@@ -75,7 +75,7 @@ def test_chat():
     # Test 5: Complete task
     print("\n5. Test: Complete first task")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": conversation_id,
             "message": "Complete the first task"
@@ -86,7 +86,7 @@ def test_chat():
     # Test 6: List tasks again
     print("\n6. Test: List tasks after completion")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": conversation_id,
             "message": "Show my tasks"
@@ -97,7 +97,7 @@ def test_chat():
     # Test 7: Delete task
     print("\n7. Test: Delete last task")
     response = requests.post(
-        f"{BASE_URL}/api/chat/{USER_ID}",
+        f"{BASE_URL}/chat/{USER_ID}",
         json={
             "conversation_id": conversation_id,
             "message": "Delete the last task"
@@ -108,7 +108,7 @@ def test_chat():
     # Test 8: Get conversation history
     print("\n8. Test: Get conversation history")
     response = requests.get(
-        f"{BASE_URL}/api/chat/{USER_ID}/conversations/{conversation_id}/messages"
+        f"{BASE_URL}/chat/{USER_ID}/conversations/{conversation_id}/messages"
     )
     print_response(response)
     

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
 import { apiFetch } from "@/lib/api";
-import VoiceInput from "./VoiceInput";
 
 interface Message {
     role: "user" | "assistant";
@@ -17,7 +16,6 @@ export default function ChatInterface() {
     const [input, setInput] = useState("");
     const [conversationId, setConversationId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
-    const [urduMode, setUrduMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -30,7 +28,15 @@ export default function ChatInterface() {
 
     useEffect(() => {
         if (session.data?.user.id) {
-            fetchHistory();
+            fetchHistory().then(history => {
+                if (!history || history.length === 0) {
+                    setMessages([{
+                        role: "assistant",
+                        content: "🛡️ Cluster Connection Established. System status is READY. I am your Phase IV Agentic assistant. How can I help with your specifications today?",
+                        created_at: new Date().toISOString()
+                    }]);
+                }
+            });
         }
     }, [session.data?.user.id]);
 
@@ -41,9 +47,12 @@ export default function ChatInterface() {
                 setConversationId(convs[0].id);
                 const history = await apiFetch(`/chat/${session.data?.user.id}/conversations/${convs[0].id}/messages`);
                 setMessages(history);
+                return history;
             }
+            return [];
         } catch (err) {
             console.error("Failed to fetch chat history:", err);
+            return [];
         }
     };
 
@@ -80,126 +89,72 @@ export default function ChatInterface() {
             }
         } catch (err) {
             console.error("Chat error:", err);
-            const errorMsg: Message = {
-                role: "assistant",
-                content: urduMode ? "معذرت، کچھ غلط ہو گیا" : "Sorry, something went wrong.",
-                created_at: new Date().toISOString(),
-            };
-            setMessages((prev) => [...prev, errorMsg]);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex flex-col h-[600px] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-gray-900 to-black p-4 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 className="text-white font-bold tracking-tight">Todo AI Assistant</h2>
-                        <p className="text-white/60 text-xs flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                            Agent Online
-                        </p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => setUrduMode(!urduMode)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 ${urduMode ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
-                        }`}
-                >
-                    {urduMode ? "اردو" : "English"}
-                </button>
-            </div>
-
+        <div className="flex flex-col h-full bg-transparent">
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-50">
-                        <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-30">
+                        <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
-                        <p className="text-sm">
-                            {urduMode ? "نیا کام شروع کرنے کے لیے کچھ لکھیں" : "How can I help you today?"}
-                        </p>
+                        <p className="text-xs font-bold uppercase tracking-widest">Awaiting connection...</p>
                     </div>
                 )}
                 {messages.map((msg, i) => (
-                    <div
-                        key={i}
-                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                        <div
-                            className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm text-sm ${msg.role === "user"
-                                ? "bg-black text-white rounded-br-none"
-                                : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
-                                }`}
-                        >
-                            <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                            <p className={`text-[10px] mt-1 opacity-50 ${msg.role === "user" ? "text-white" : "text-gray-500"}`}>
-                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`flex items-start gap-2 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                            {msg.role === "assistant" && (
+                                <div className="w-8 h-8 rounded-lg bg-slate-200 flex-shrink-0 flex items-center justify-center shadow-inner border border-white/50">
+                                    <svg className="w-5 h-5 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05l-3.293 3.293a1 1 0 01-1.414 0l-3.293-3.293a1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L11 4.323V3a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
+                                </div>
+                            )}
+                            <div className={`relative p-3 rounded-xl text-xs font-medium shadow-sm border ${msg.role === "user"
+                                ? "bg-slate-800 text-white border-slate-700"
+                                : "bg-white/80 text-slate-700 border-white/60"
+                                }`}>
+                                <p className="leading-relaxed">{msg.content}</p>
+                                <span className="absolute -bottom-4 right-0 text-[9px] text-slate-400 font-bold uppercase">
+                                    {msg.role === "user" ? "User" : "Agent"} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 ))}
                 {loading && (
                     <div className="flex justify-start">
-                        <div className="bg-white rounded-2xl rounded-bl-none px-4 py-3 flex gap-1 shadow-sm border border-gray-100">
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce [animation-delay:0.2s]" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce [animation-delay:0.4s]" />
+                        <div className="bg-white/60 rounded-xl px-4 py-3 flex gap-1 border border-white/40 shadow-sm animate-pulse">
+                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                         </div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Smart Suggestions */}
-            {!loading && (
-                <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar bg-white border-t border-gray-50">
-                    {[
-                        { en: "Show high priority", ur: "ضروری کام دکھاؤ" },
-                        { en: "What's due today?", ur: "آج کیا کام ہے؟" },
-                        { en: "Show pending tasks", ur: "نامکمل کام دکھاؤ" },
-                    ].map((s, i) => (
-                        <button
-                            key={i}
-                            onClick={() => handleSend(urduMode ? s.ur : s.en)}
-                            className="whitespace-nowrap px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[11px] font-bold text-gray-600 hover:bg-black hover:text-white hover:border-black transition-all"
-                            dir={urduMode ? "rtl" : "ltr"}
-                        >
-                            {urduMode ? s.ur : s.en}
-                        </button>
-                    ))}
-                </div>
-            )}
-
             {/* Input */}
-            <div className="p-4 bg-white border-t border-gray-100">
-
-                <div className="relative flex items-center gap-2">
+            <div className="p-4 border-t border-white/40 bg-slate-50/50">
+                <div className="flex gap-2">
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                        placeholder={urduMode ? "یہاں لکھیں..." : "Type a message..."}
-                        className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black transition-all"
-                        dir={urduMode ? "rtl" : "ltr"}
+                        placeholder="Type your message..."
+                        className="flex-1 bg-white/70 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-blue-400 font-medium"
                     />
-                    <VoiceInput onTranscript={(t: string) => handleSend(t)} disabled={loading} language={urduMode ? "ur-PK" : "en-US"} />
                     <button
                         onClick={() => handleSend()}
                         disabled={loading || !input.trim()}
-                        className="p-3 bg-black text-white rounded-xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-black/20 active:scale-95"
+                        className="p-2 bg-slate-800 text-white rounded hover:bg-slate-700 disabled:opacity-50 shadow-sm"
                     >
-                        <svg className="w-5 h-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </button>

@@ -3,14 +3,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
 from routers import todos, chat
+from system_utils import get_system_status_data
 import os
 
 import logging
 import traceback
 from fastapi import Request, Response
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# SP-7: Structured Logging
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_entry = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "module": record.module,
+            "func": record.funcName
+        }
+        if record.exc_info:
+            log_entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_entry)
+
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormatter())
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,3 +71,7 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.get("/system/status")
+def get_system_status():
+    return get_system_status_data()
