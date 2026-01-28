@@ -8,8 +8,13 @@ RESTRICTED_DIRS = {
     "k8s/helm/todo-backend": "AI-Generated via kubectl-ai",
     "k8s/helm/todo-frontend": "AI-Generated via kubectl-ai",
     "specs/infrastructure_spec.md": "Single Source of Truth",
+    "specs/phase_vi_deployment_spec.md": "Phase VI Spec",
+    "k8s/components/statestore.yaml": "Dapr State Store",
+    "k8s/components/pubsub.yaml": "Dapr PubSub",
+    ".github/workflows/phase_vi_deploy.yml": "Phase VI CI/CD",
     "docs/PHASE_V_SDD_AUDIT.md": "Phase V Governance Evidence"
 }
+
 
 def verify_compliance():
     print("--- SDD Constitution Compliance Audit ---")

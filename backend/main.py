@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
-from routers import todos, chat
+from routers import todos, chat, events
 from system_utils import get_system_status_data
 import os
 
@@ -76,6 +76,7 @@ app.add_middleware(
 
 app.include_router(todos.router)
 app.include_router(chat.router)
+app.include_router(events.router)
 
 @app.get("/")
 def read_root():

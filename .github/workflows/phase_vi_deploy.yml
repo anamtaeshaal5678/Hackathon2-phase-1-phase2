@@ -1,0 +1,65 @@
+name: Phase VI Cloud Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run: |
+        pip install -r backend/requirements.txt
+        pip install pytest
+
+    - name: Run Backend Tests
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        pytest tests/
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm install
+
+    # Skipping npm test for now as frontend tests might not be set up
+    # - name: Run Frontend Tests
+    #   run: |
+    #     cd frontend
+    #     npm test
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'v3.11.1'
+
+    - name: Lint Helm Charts
+      run: |
+        helm lint k8s/helm/todo-backend
+        helm lint k8s/helm/todo-frontend
+
+    - name: Build Docker Image (Backend)
+      run: |
+        docker build -t todo-backend:latest -f backend/Dockerfile .
+
+    - name: Build Docker Image (Frontend)
+      run: |
+        docker build -t todo-frontend:latest -f frontend/Dockerfile .
+
+    - name: Check SDD Compliance
+      run: |
+        python scripts/verify_compliance.py
