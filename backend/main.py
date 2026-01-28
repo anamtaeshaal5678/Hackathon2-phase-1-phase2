@@ -53,9 +53,11 @@ async def catch_exceptions_middleware(request: Request, call_next):
 
 # Allow CORS for Frontend
 # In production this should be restricted to the frontend domain
+allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"], 
+    allow_origins=allowed_origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

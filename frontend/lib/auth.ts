@@ -48,7 +48,8 @@ export const auth = betterAuth({
     // In a real app, ALWAYS set BETTER_AUTH_SECRET in Vercel Dashboard
     secret: process.env.BETTER_AUTH_SECRET || "hackathon-emergency-secret-key-2026-secure",
     baseURL: process.env.BETTER_AUTH_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+        (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` :
+            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")),
     emailAndPassword: {
         enabled: true,
     },
