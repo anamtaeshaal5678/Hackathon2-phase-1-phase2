@@ -36,7 +36,18 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
-app = FastAPI(title="AI-Powered Todo Chatbot - Phase III", version="0.2.0", lifespan=lifespan, redirect_slashes=False)
+# Determine root path based on environment
+# On Vercel, requests to /api/backend/xxx are routed to this app
+# So we need to strip /api/backend prefix or tell FastAPI about it
+root_path = "/api/backend" if os.environ.get("VERCEL") else ""
+
+app = FastAPI(
+    title="AI-Powered Todo Chatbot - Phase III", 
+    version="0.2.0", 
+    lifespan=lifespan, 
+    redirect_slashes=False,
+    root_path=root_path
+)
 
 @app.middleware("http")
 async def catch_exceptions_middleware(request: Request, call_next):
