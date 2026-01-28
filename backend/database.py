@@ -12,6 +12,12 @@ def get_db_url():
     url = os.environ.get("DATABASE_URL")
     if url and url.startswith("postgres://"):
         return url.replace("postgres://", "postgresql://", 1)
+    
+    # Vercel-specific: Use /tmp for SQLite if no DATABASE_URL is set
+    if not url and os.environ.get("VERCEL"):
+        print("DEBUG: Detected Vercel Environment. Using /tmp/todo.db for SQLite.")
+        return "sqlite:////tmp/todo.db"
+        
     return url
 
 DATABASE_URL = get_db_url()
