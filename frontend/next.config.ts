@@ -9,7 +9,11 @@ const nextConfig: NextConfig = {
         destination: process.env.BACKEND_URL
           ? `${process.env.BACKEND_URL}/:path*`
           : "http://127.0.0.1:8000/:path*",
-
+      },
+      // Rewrite to handle Vercel's routing which might pass /frontend prefix
+      {
+        source: "/frontend/:path*",
+        destination: "/:path*",
       },
     ];
   },
