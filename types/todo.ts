@@ -1,9 +1,0 @@
-export type Todo = {
-    id: string;
-    description: string;
-    is_completed: boolean;
-    created_at: string;
-    priority: "low" | "medium" | "high";
-    due_date?: string;
-};
-
