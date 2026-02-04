@@ -2,9 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
-from routers import todos, chat, events
+from routers import todos, chat, events, phase_v_routes
 from system_utils import get_system_status_data
 import os
+import json
 
 import logging
 import traceback
@@ -42,8 +43,8 @@ async def lifespan(app: FastAPI):
 root_path = "/api/backend" if os.environ.get("VERCEL") else ""
 
 app = FastAPI(
-    title="AI-Powered Todo Chatbot - Phase III", 
-    version="0.2.0", 
+    title="AI-Powered Todo Chatbot - Phase V (GitOps)", 
+    version="0.5.0", 
     lifespan=lifespan, 
     redirect_slashes=False,
     root_path=root_path
@@ -77,6 +78,7 @@ app.add_middleware(
 app.include_router(todos.router)
 app.include_router(chat.router)
 app.include_router(events.router)
+app.include_router(phase_v_routes.router)
 
 @app.get("/")
 def read_root():
