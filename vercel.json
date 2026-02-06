@@ -1,26 +1,11 @@
 {
-    "builds": [
+    "buildCommand": "cd frontend && npm install && npm run build",
+    "outputDirectory": "frontend/.next",
+    "framework": "nextjs",
+    "rewrites": [
         {
-            "src": "api/index.py",
-            "use": "@vercel/python",
-            "config": {
-                "maxLambdaSize": "15mb",
-                "runtime": "python3.11"
-            }
-        },
-        {
-            "src": "frontend/package.json",
-            "use": "@vercel/next"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/api/backend/(.*)",
-            "dest": "/api/index.py"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/frontend/$1"
+            "source": "/api/backend/:path*",
+            "destination": "/api/index.py"
         }
     ]
 }
