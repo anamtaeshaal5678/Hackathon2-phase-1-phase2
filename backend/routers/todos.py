@@ -58,18 +58,26 @@ async def create_todo(
     session.refresh(todo)
     
     # SP-1.5: Schedule reminder via Dapr Jobs API if needed
-    if todo.reminder_time:
-        try:
-            from dapr_client import dapr
-            # Schedule a job to fire at reminder_time
-            await dapr.invoke_service("app", "jobs/reminders", {
-                "jobId": f"reminder-{todo.id}",
-                "dueTime": todo.reminder_time.isoformat(),
-                "data": {"task_id": str(todo.id), "title": todo.title}
-            })
-        except: pass
+    # Emit event for reminder scheduling (Dapr optional)
+    try:
+        if todo.reminder_time:
+            try:
+                from dapr_client import dapr
+                # Schedule a job to fire at reminder_time
+                await dapr.invoke_service("app", "jobs/reminders", {
+                    "jobId": f"reminder-{todo.id}",
+                    "dueTime": todo.reminder_time.isoformat(),
+                    "data": {"task_id": str(todo.id), "title": todo.title}
+                })
+            except Exception as e:
+                print(f"DEBUG: Failed to schedule Dapr reminder job: {e}")
+                pass  # Dapr not available or error, skip event
+    except Exception as e:
+        print(f"DEBUG: Error in Dapr reminder scheduling block: {e}")
+        pass # Outer try-except for the whole block
 
     # SP-2: Emit event via Dapr
+    # Emit task creation event (Dapr optional)
     try:
         from dapr_client import dapr
         await dapr.publish_event("pubsub", "task-events", {
@@ -79,7 +87,8 @@ async def create_todo(
             "title": todo.title
         })
     except Exception as e:
-        print(f"DEBUG: Failed to emit dapr event: {e}")
+        print(f"DEBUG: Failed to emit Dapr task creation event: {e}")
+        pass  # Dapr not available or error, skip event
         
     return todo
 
