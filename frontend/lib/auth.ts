@@ -10,46 +10,49 @@ const localDbPath = path.join(process.cwd(), "..", "todo.db");
 const getDatabase = () => {
     const dbUrl = process.env.DATABASE_URL;
     console.log("DEBUG: Initializing Better Auth Database...");
-    console.log("DEBUG: DATABASE_URL exists:", !!dbUrl);
 
+    // 1. Check for PostgreSQL (Production)
     if (dbUrl && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://"))) {
-        console.log("DEBUG: Using Remote PostgreSQL Database (Production Mode)");
+        console.log("DEBUG: Using Remote PostgreSQL Database. Connection string prefix:", dbUrl.substring(0, 15));
         return {
             dialect: "postgres",
             connectionString: dbUrl
         };
     }
 
-    // Default to SQLite for local development
-    console.log("DEBUG: Falling back to Local SQLite (Development Mode or Missing DATABASE_URL)");
-    console.log("DEBUG: Attempting to use path:", localDbPath);
-
-    // (Optional) Check cache/existence if needed, but better-sqlite3 handles creation.
-
-    // SQLite Handling
-    // On Vercel, the file system is Read-Only except for /tmp
-    let dbToUse = localDbPath;
-
-    if (process.env.VERCEL_URL) {
-        console.log("DEBUG: Detected Vercel Environment. Using /tmp for SQLite to avoid Read-Only error.");
+    // 2. Handle Vercel SQLite (Emergency/Development Mode on Vercel)
+    // IMPORTANT: This is ephemeral and data will be lost on scale-down/redeploys.
+    if (process.env.VERCEL) {
+        console.warn("WARNING: DATABASE_URL not found on Vercel. Falling back to EPHEMERAL SQLite in /tmp.");
+        console.warn("CRITICAL: Accounts created here will be LOST frequently.");
         const tmpDbPath = "/tmp/todo.db";
-        // We start with an empty DB in /tmp because we can't easily copy the gitignored one
-        // This means data is ephemeral (resets on deploy/cold start)
-        dbToUse = tmpDbPath;
+        return new Database(tmpDbPath);
     }
 
-    console.log("DEBUG: Using SQLite Database at:", dbToUse);
-    return new Database(dbToUse);
+    // 3. Local Development (SQLite)
+    console.log("DEBUG: Using Local SQLite at:", localDbPath);
+    return new Database(localDbPath);
 };
 
 export const auth = betterAuth({
     database: getDatabase(),
-    // Fallback secret for Vercel "Zero Config" deployment
-    // In a real app, ALWAYS set BETTER_AUTH_SECRET in Vercel Dashboard
-    secret: process.env.BETTER_AUTH_SECRET || "hackathon-emergency-secret-key-2026-secure",
-    baseURL: process.env.BETTER_AUTH_URL ||
-        (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` :
-            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")),
+    // In production, BETTER_AUTH_SECRET must be set in Vercel.
+    // If missing, we use a fallback but log a warning.
+    secret: process.env.BETTER_AUTH_SECRET || (() => {
+        if (process.env.NODE_ENV === "production") {
+            console.error("CRITICAL: BETTER_AUTH_SECRET is MISSING in production!");
+        }
+        return "hackathon-emergency-secret-key-2026-secure";
+    })(),
+    baseURL: process.env.BETTER_AUTH_URL || (() => {
+        if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+            return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+        }
+        if (process.env.VERCEL_URL) {
+            return `https://${process.env.VERCEL_URL}`;
+        }
+        return "http://localhost:3000";
+    })(),
     emailAndPassword: {
         enabled: true,
     },

@@ -15,7 +15,19 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     });
 
     if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
+        let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+        try {
+            // Try to parse error body for more details
+            const errorBody = await response.text();
+            if (errorBody) {
+                // Truncate if too long to avoid huge logs
+                const truncatedBody = errorBody.length > 200 ? errorBody.substring(0, 200) + "..." : errorBody;
+                errorMessage += ` | Details: ${truncatedBody}`;
+            }
+        } catch (e) {
+            // Ignore failed body parsing
+        }
+        throw new Error(errorMessage);
     }
 
     // Handle 204 No Content

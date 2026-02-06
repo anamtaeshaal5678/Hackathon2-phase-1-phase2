@@ -23,9 +23,16 @@ export default function SignIn() {
             },
             onError: (ctx) => {
                 console.error("Sign in error:", ctx);
-                // VERCEL DEBUGGING: Dump the entire error context
-                const debugInfo = JSON.stringify(ctx, null, 2);
-                setError(debugInfo);
+
+                // Be more descriptive for common errors
+                if (ctx.error.status === 401 || ctx.error.code === "INVALID_CREDENTIALS") {
+                    setError("Invalid email or password. If you are on Vercel, please make sure you have created your account on THIS environment by clicking 'Sign up'.");
+                } else if (ctx.error.message) {
+                    setError(`Error: ${ctx.error.message}`);
+                } else {
+                    const debugInfo = JSON.stringify(ctx, null, 2);
+                    setError(`Technical Error Details: ${debugInfo}`);
+                }
             }
         });
     };
