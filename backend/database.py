@@ -11,7 +11,14 @@ from sqlalchemy import event
 def get_db_url():
     url = os.environ.get("DATABASE_URL")
     if url and url.startswith("postgres://"):
-        return url.replace("postgres://", "postgresql://", 1)
+        url = url.replace("postgres://", "postgresql://", 1)
+        
+    # Ensure sslmode is present for Neon/Cloud Postgres
+    if url and "postgresql" in url and "sslmode" not in url:
+        if "?" in url:
+            url += "&sslmode=require"
+        else:
+            url += "?sslmode=require"
     
     # Vercel-specific: Use /tmp for SQLite if no DATABASE_URL is set
     if not url and os.environ.get("VERCEL"):

@@ -16,7 +16,13 @@ const getDatabase = () => {
         console.log("DEBUG: Using Remote PostgreSQL Database. Connection string prefix:", dbUrl.substring(0, 15));
         return {
             dialect: "postgres",
-            connectionString: dbUrl
+            connectionString: dbUrl,
+            // Force SSL for Neon/Cloud DBs
+            extra: {
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            }
         };
     }
 
