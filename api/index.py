@@ -1,4 +1,4 @@
-from backend.main import app
+# Vercel serverless function entry point
+# Using minimal backend to avoid dependency issues
 
-# Vercel needs a handler, but FastAPI 'app' is enough if WSGI/ASGI is detected.
-# For Vercel Python runtime, sticking to 'app' variable is standard.
+from backend.main_minimal import app
